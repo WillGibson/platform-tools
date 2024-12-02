@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import call
@@ -39,7 +40,9 @@ class ConduitMocks:
         self.connect_to_addon_client_task_fn = kwargs.get("connect_to_addon_client_task_fn", Mock())
         self.create_addon_client_task_fn = kwargs.get("create_addon_client_task_fn", Mock())
         self.create_postgres_admin_task_fn = kwargs.get("create_postgres_admin_task_fn", Mock())
-        self.echo_fn = kwargs.get("echo_fn", Mock())
+        self.echo_fn: Callable[[str], str] = kwargs.get(
+            "echo_fn", MagicMock(spec=Callable[[str], str])
+        )
         self.get_addon_type_fn = kwargs.get("get_addon_type_fn", Mock(return_value=addon_type))
         self.get_cluster_arn_fn = kwargs.get(
             "get_cluster_arn_fn",
@@ -59,7 +62,7 @@ class ConduitMocks:
             "wait_for_cloudformation_to_reach_status_fn", Mock()
         )
 
-    def params(self):
+    def params(self) -> dict:
         return {
             "add_stack_delete_policy_to_task_role_fn": self.add_stack_delete_policy_to_task_role_fn,
             "get_ecs_task_arns_fn": self.get_ecs_task_arns_fn,

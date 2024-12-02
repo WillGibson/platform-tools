@@ -3885,6 +3885,17 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
+name = "type-enforced"
+version = "1.8.0"
+description = "A pure python type enforcer for python type annotations"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "type_enforced-1.8.0-py3-none-any.whl", hash = "sha256:13a3ed2a394fd7ff5167dcd2c39dd81668b65d592ad1fe19e1c23e18f5b7db2f"},
+    {file = "type_enforced-1.8.0.tar.gz", hash = "sha256:6450d4c0dc96b132a824b5cdd22279ff4b1876fd0582d5f418632252b91d4ab0"},
+]
+
+[[package]]
 name = "types-awscrt"
 version = "0.22.4"
 description = "Type annotations and code completion for awscrt"
@@ -4262,4 +4273,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "7e55882fdcfd4622227ff7e028da4f81bfda7f93110af09632aa00db36b654ec"
+content-hash = "b89a1432a97f1bbe721a99debdf64506f48f4ba6b2058a4e5d43bf73682bd5ad"

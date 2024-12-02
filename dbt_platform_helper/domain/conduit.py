@@ -2,6 +2,7 @@ import subprocess
 from collections.abc import Callable
 
 import click
+import type_enforced
 
 from dbt_platform_helper.exceptions import ECSAgentNotRunning
 from dbt_platform_helper.providers.cloudformation import (
@@ -24,6 +25,7 @@ from dbt_platform_helper.utils.application import Application
 from dbt_platform_helper.utils.messages import abort_with_error
 
 
+@type_enforced.Enforcer
 class Conduit:
     def __init__(
         self,
