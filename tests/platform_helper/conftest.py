@@ -14,6 +14,8 @@ from moto import mock_aws
 from moto.ec2 import utils as ec2_utils
 
 from dbt_platform_helper.constants import PLATFORM_CONFIG_FILE
+from dbt_platform_helper.providers.opensearch import OpensearchProvider
+from dbt_platform_helper.providers.redis import RedisProvider
 from dbt_platform_helper.utils.aws import AWS_SESSION_CACHE
 from dbt_platform_helper.utils.versioning import PlatformHelperVersions
 
@@ -59,7 +61,6 @@ def fakefs(fs):
     fs.add_real_directory(FIXTURES_DIR, lazy_read=True)
     fs.add_real_file(BASE_DIR / "dbt_platform_helper/addon-plans.yml")
     fs.add_real_file(BASE_DIR / "dbt_platform_helper/default-extensions.yml")
-    fs.add_real_file(BASE_DIR / "dbt_platform_helper/addons-template-map.yml")
 
     # To avoid 'Could not find a suitable TLS CA certificate bundle...' error
     fs.add_real_file(Path(certifi.__file__).parent / "cacert.pem")
@@ -281,6 +282,12 @@ def validate_version():
 @pytest.fixture(scope="function")
 def mock_stack():
     def _create_stack(addon_name):
+        params = [
+            {
+                "ParameterKey": "ExistingParameter",
+                "ParameterValue": "does-not-matter",
+            }
+        ]
         with mock_aws():
             with open(FIXTURES_DIR / "test_cloudformation_template.yml") as f:
                 template = yaml.safe_load(f)
@@ -288,6 +295,7 @@ def mock_stack():
             cf.create_stack(
                 StackName=f"task-{mock_task_name(addon_name)}",
                 TemplateBody=yaml.dump(template),
+                Parameters=params,
             )
 
     return _create_stack
@@ -439,6 +447,15 @@ environments:
     versions:
         terraform-platform-modules: 1.2.3
   staging:
+  hotfix:
+    accounts:
+      deploy:
+        name: "prod-acc"
+        id: "9999999999"
+      dns:
+        name: "non-prod-dns-acc"
+        id: "6677889900"
+    vpc: hotfix-vpc
   prod:
     accounts:
       deploy:
@@ -475,7 +492,7 @@ extensions:
         deletion_policy: Retain
     database_copy:
         - from: prod
-          to: staging
+          to: hotfix
 
   test-app-opensearch:
     type: opensearch
@@ -705,21 +722,25 @@ def create_invalid_platform_config_file(fakefs):
     )
 
 
+# TODO - stop gap until validation.py is refactored into a class, then it will be an easier job of just passing in a mock_redis_provider into the constructor for the config_provider. For now autouse is needed.
 @pytest.fixture(autouse=True)
-def mock_get_supported_opensearch_versions(monkeypatch):
-    def mock_return_value(opensearch_client=None):
+def mock_get_supported_opensearch_versions(request, monkeypatch):
+    if "skip_opensearch_fixture" in request.keywords:
+        return
+
+    def mock_return_value(self):
         return ["1.0", "1.1", "1.2"]
 
-    monkeypatch.setattr(
-        "dbt_platform_helper.utils.validation.get_supported_opensearch_versions", mock_return_value
-    )
+    monkeypatch.setattr(OpensearchProvider, "get_supported_opensearch_versions", mock_return_value)
 
 
+# TODO - stop gap until validation.py is refactored into a class, then it will be an easier job of just passing in a mock_redis_provider into the constructor for the config_provider. For now autouse is needed.
 @pytest.fixture(autouse=True)
-def mock_get_supported_redis_versions(monkeypatch):
-    def mock_return_value(opensearch_client=None):
+def mock_get_supported_redis_versions(request, monkeypatch):
+    if "skip_redis_fixture" in request.keywords:
+        return
+
+    def mock_return_value(self):
         return ["6.2", "7.0", "7.1"]
 
-    monkeypatch.setattr(
-        "dbt_platform_helper.utils.validation.get_supported_redis_versions", mock_return_value
-    )
+    monkeypatch.setattr(RedisProvider, "get_supported_redis_versions", mock_return_value)

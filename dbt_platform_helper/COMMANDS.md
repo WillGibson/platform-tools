@@ -256,7 +256,8 @@ platform-helper codebase deploy --app <application> --env <environment> --codeba
 
 [↩ Parent](#platform-helper)
 
-    Create a conduit connection to an addon.
+    Opens a shell for a given addon_name create a conduit connection to
+    interact with postgres, opensearch or redis.
 
 ## Usage
 
@@ -272,11 +273,11 @@ platform-helper conduit <addon_name>
 ## Options
 
 - `--app <text>`
-  - AWS application name
+  - Application name
 - `--env <text>`
-  - AWS environment name
+  - Environment name
 - `--access <choice>` _Defaults to read._
-  - Allow write or admin access to database addons
+  - Allow read, write or admin access to the database addons.
 - `--help <boolean>` _Defaults to False._
   - Show this message and exit.
 
@@ -550,9 +551,6 @@ platform-helper pipeline generate
     This command does the following in relation to the codebase pipelines:
     - Generates the copilot pipeline manifest.yml for copilot/pipelines/<codebase_pipeline_name>
 
-    (Deprecated) This command does the following for non terraform projects (legacy AWS Copilot):
-    - Generates the copilot manifest.yml for copilot/environments/<environment>
-
 ## Usage
 
 ```
@@ -764,6 +762,7 @@ platform-helper database (dump|load|copy)
 ```
 platform-helper database dump --from <from_env> --database <database> 
                               [--app <application>] [--from-vpc <from_vpc>] 
+                              [--filename <filename>] 
 ```
 
 ## Options
@@ -776,6 +775,8 @@ platform-helper database dump --from <from_env> --database <database>
   - The name of the database you are dumping data from
 - `--from-vpc <text>`
   - The vpc the specified environment is running in. Required unless you are running the command from your deploy repo
+- `--filename <text>`
+  - Specify a name for the database dump file. Recommended if the same dump database is being used for multiple load environments
 - `--help <boolean>` _Defaults to False._
   - Show this message and exit.
 
@@ -790,7 +791,7 @@ platform-helper database dump --from <from_env> --database <database>
 ```
 platform-helper database load --to <to_env> --database <database> 
                               [--app <application>] [--to-vpc <to_vpc>] 
-                              [--auto-approve] 
+                              [--filename <filename>] [--auto-approve] 
 ```
 
 ## Options
@@ -805,6 +806,8 @@ platform-helper database load --to <to_env> --database <database>
   - The vpc the specified environment is running in. Required unless you are running the command from your deploy repo
 - `--auto-approve <boolean>` _Defaults to False._
 
+- `--filename <text>`
+  - Specify a name for the database dump file. Recommended if the same dump database is being used for multiple load environments
 - `--help <boolean>` _Defaults to False._
   - Show this message and exit.
 
