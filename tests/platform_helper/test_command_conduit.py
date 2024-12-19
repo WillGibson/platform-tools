@@ -6,7 +6,6 @@ from click.testing import CliRunner
 
 from dbt_platform_helper.commands.conduit import conduit
 from dbt_platform_helper.providers.secrets import SecretNotFoundException
-from tests.platform_helper.conftest import add_addon_config_parameter
 from tests.platform_helper.conftest import is_mutmut_test_run
 
 
@@ -86,4 +85,4 @@ def test_start_conduit_with_exception_raised_exit_1(
 def if_not_mutmut_run_assert_validate_version_called_once(validate_version):
     # Todo: Get to the bottom of why validate_version_compatibility is not called during a mutmut test run
     if not is_mutmut_test_run():
-        if_not_mutmut_run_assert_validate_version_called_once(validate_version)
+        validate_version.assert_called_once()
