@@ -34,16 +34,17 @@ jobs:
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
 
-      - name: Upload code coverage results to Codecov
-        uses: codecov/codecov-action@v4
-        if: ${{ !cancelled() }}
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-
-      - name: Upload test analysis results to Codecov
-        uses: codecov/test-results-action@v1
-        if: ${{ !cancelled() }}
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+      # Todo: Uncomment when done
+      # - name: Upload code coverage results to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   if: ${{ !cancelled() }}
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     fail_ci_if_error: true
+      #
+      # - name: Upload test analysis results to Codecov
+      #   uses: codecov/test-results-action@v1
+      #   if: ${{ !cancelled() }}
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     fail_ci_if_error: true
