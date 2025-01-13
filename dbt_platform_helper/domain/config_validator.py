@@ -1,3 +1,5 @@
+from typing import Callable
+
 import boto3
 import click
 
@@ -9,16 +11,9 @@ from dbt_platform_helper.providers.redis import RedisProvider
 from dbt_platform_helper.utils.messages import abort_with_error
 
 
-# TODO = this shouldnt live here.. should it hehe
-def get_env_deploy_account_info(config, env, key):
-    return (
-        config.get("environments", {}).get(env, {}).get("accounts", {}).get("deploy", {}).get(key)
-    )
-
-
 class ConfigValidator:
 
-    def __init__(self, validations=[]):
+    def __init__(self, validations: Callable[[dict], None] = None):
         self.validations = validations or [
             self.validate_supported_redis_versions,
             self.validate_supported_opensearch_versions,
@@ -28,7 +23,7 @@ class ConfigValidator:
             self.validate_database_copy_section,
         ]
 
-    def run_validations(self, config):
+    def run_validations(self, config: dict):
         for validation in self.validations:
             validation(config)
 
@@ -189,8 +184,20 @@ class ConfigValidator:
                 from_env = section["from"]
                 to_env = section["to"]
 
-                from_account = get_env_deploy_account_info(config, from_env, "id")
-                to_account = get_env_deploy_account_info(config, to_env, "id")
+                from_account = (
+                    config.get("environments", {})
+                    .get(from_env, {})
+                    .get("accounts", {})
+                    .get("deploy", {})
+                    .get("id")
+                )
+                to_account = (
+                    config.get("environments", {})
+                    .get(to_env, {})
+                    .get("accounts", {})
+                    .get("deploy", {})
+                    .get("id")
+                )
 
                 if from_env == to_env:
                     errors.append(

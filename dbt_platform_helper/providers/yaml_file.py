@@ -16,7 +16,7 @@ class YamlFileProviderException(FileProviderException):
     pass
 
 
-class FileNotFoundException(YamlFileProviderException):
+class FileNotFoundException(FileProviderException):
     pass
 
 
@@ -43,10 +43,7 @@ class YamlFileProvider(FileProvider):
             DuplicateKeysException: yaml contains duplicate keys
         """
         if not Path(path).exists():
-            # TODO this error message is domain specific and should not mention deployment directory project here
-            raise FileNotFoundException(
-                f"`{path}` is missing. Please check it exists and you are in the root directory of your deployment project."
-            )
+            raise FileNotFoundException(f"`{path}` is missing.")
         try:
             yaml_content = yaml.safe_load(Path(path).read_text())
         except ParserError:
@@ -58,6 +55,11 @@ class YamlFileProvider(FileProvider):
         YamlFileProvider.lint_yaml_for_duplicate_keys(path)
 
         return yaml_content
+
+    def write(path: str, contents: dict, comment: str = ""):
+        with open(path, "w") as file:
+            file.write(comment)
+            yaml.dump(contents, file)
 
     @staticmethod
     def lint_yaml_for_duplicate_keys(path):
