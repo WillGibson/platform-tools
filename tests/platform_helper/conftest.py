@@ -14,10 +14,8 @@ from moto import mock_aws
 from moto.ec2 import utils as ec2_utils
 
 from dbt_platform_helper.constants import PLATFORM_CONFIG_FILE
-from dbt_platform_helper.providers.opensearch import OpensearchProvider
-from dbt_platform_helper.providers.redis import RedisProvider
+from dbt_platform_helper.providers.cache import Cache
 from dbt_platform_helper.utils.aws import AWS_SESSION_CACHE
-from dbt_platform_helper.utils.versioning import PlatformHelperVersions
 
 
 def is_mutmut_test_run():
@@ -104,6 +102,13 @@ environments:
       alias: app.trade.gov.uk
 """,
     )
+
+
+@pytest.fixture()
+def no_skipping_version_checks():
+    with patch("dbt_platform_helper.domain.versioning.skip_version_checks") as skip_version_checks:
+        skip_version_checks.return_value = False
+        yield skip_version_checks
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -266,20 +271,6 @@ def mocked_pg_secret():
 
 
 @pytest.fixture(scope="function")
-def validate_version():
-    with patch(
-        "dbt_platform_helper.utils.versioning.get_platform_helper_versions"
-    ) as get_platform_helper_versions:
-        get_platform_helper_versions.return_value = PlatformHelperVersions((1, 0, 0), (1, 0, 0))
-        with patch(
-            "dbt_platform_helper.utils.versioning.validate_version_compatibility",
-            side_effect=None,
-            return_value=None,
-        ) as patched:
-            yield patched
-
-
-@pytest.fixture(scope="function")
 def mock_stack():
     def _create_stack(addon_name):
         params = [
@@ -425,12 +416,9 @@ def valid_platform_config():
     return yaml.safe_load(
         """
 application: test-app
-legacy_project: true
-
 default_versions: 
     platform-helper: 10.2.0
     terraform-platform-modules: 1.2.3
-
 environments:
   "*":
     accounts:
@@ -529,7 +517,6 @@ extensions:
     environments:
       dev:
         bucket_name: test-app-policy-dev
-        versioning: false
   
   test-app-s3-bucket-data-migration:
     type: s3
@@ -596,14 +583,16 @@ environment_pipelines:
         requires_approval: true
 
 codebase_pipelines:
-  - name: application
+  application:
+    slack_channel: OTHER_SLACK_CHANNEL_ID
     repository: uktrade/test-app
     deploy_repository_branch: feature-branch
     additional_ecr_repository: public.ecr.aws/my-public-repo/test-app/application
     services:
-      - celery-worker
-      - celery-beat
-      - web
+        - run_order_1:
+          - celery-worker
+          - celery-beat
+          - web
     pipelines:
       - name: main
         branch: main
@@ -643,6 +632,58 @@ def platform_env_config():
             },
         },
     }
+
+
+@pytest.fixture
+def codebase_pipeline_config_for_1_pipeline_and_2_run_groups(platform_env_config):
+    return {
+        **platform_env_config,
+        "codebase_pipelines": {
+            "test_codebase": {
+                "repository": "uktrade/repo1",
+                "services": [
+                    {"run_group_1": ["web"]},
+                    {"run_group_2": ["api", "celery-worker"]},
+                ],
+                "pipelines": [
+                    {"name": "main", "branch": "main", "environments": [{"name": "dev"}]},
+                    {
+                        "name": "tagged",
+                        "tag": True,
+                        "environments": [
+                            {"name": "staging"},
+                            {"name": "prod", "requires_approval": True},
+                        ],
+                    },
+                ],
+            }
+        },
+    }
+
+
+@pytest.fixture
+def codebase_pipeline_config_for_2_pipelines_and_1_run_group(
+    codebase_pipeline_config_for_1_pipeline_and_2_run_groups,
+):
+    codebase_pipeline_config_for_1_pipeline_and_2_run_groups["codebase_pipelines"][
+        "test_codebase_2"
+    ] = {
+        "repository": "uktrade/repo2",
+        "services": [
+            {"run_group_1": ["web"]},
+        ],
+        "pipelines": [
+            {"name": "main", "branch": "main", "environments": [{"name": "dev"}]},
+            {
+                "name": "tagged",
+                "tag": True,
+                "environments": [
+                    {"name": "staging"},
+                ],
+            },
+        ],
+    }
+    return codebase_pipeline_config_for_1_pipeline_and_2_run_groups
 
 
 @pytest.fixture
@@ -709,6 +750,51 @@ environment_pipelines:
 """
 
 
+@pytest.fixture()
+def platform_config_for_env_pipelines():
+    return yaml.safe_load(
+        """
+application: test-app
+deploy_repository: uktrade/test-app-weird-name-deploy
+
+environments:
+  dev:
+    accounts:
+      deploy:
+        name: "platform-sandbox-test"
+        id: "1111111111"
+      dns:
+        name: "platform-sandbox-test"
+        id: "2222222222"
+  prod:
+    accounts:
+      deploy:
+        name: "platform-prod-test"
+        id: "3333333333"
+      dns:
+        name: "platform-prod-test"
+        id: "4444444444"
+    requires_approval: true
+
+environment_pipelines:
+   main:
+       account: platform-sandbox-test
+       branch: main
+       slack_channel: "/codebuild/test-slack-channel"
+       trigger_on_push: false
+       environments:
+         dev:
+   prod-main:
+       account: platform-prod-test
+       branch: main
+       slack_channel: "/codebuild/test-slack-channel"
+       trigger_on_push: false
+       environments:
+         prod:
+    """
+    )
+
+
 @pytest.fixture
 def create_valid_platform_config_file(fakefs, valid_platform_config):
     fakefs.create_file(Path(PLATFORM_CONFIG_FILE), contents=yaml.dump(valid_platform_config))
@@ -724,23 +810,11 @@ def create_invalid_platform_config_file(fakefs):
 
 # TODO - stop gap until validation.py is refactored into a class, then it will be an easier job of just passing in a mock_redis_provider into the constructor for the config_provider. For now autouse is needed.
 @pytest.fixture(autouse=True)
-def mock_get_supported_opensearch_versions(request, monkeypatch):
-    if "skip_opensearch_fixture" in request.keywords:
+def mock_get_data(request, monkeypatch):
+    if "skip_mock_get_data" in request.keywords:
         return
 
-    def mock_return_value(self):
-        return ["1.0", "1.1", "1.2"]
-
-    monkeypatch.setattr(OpensearchProvider, "get_supported_opensearch_versions", mock_return_value)
-
-
-# TODO - stop gap until validation.py is refactored into a class, then it will be an easier job of just passing in a mock_redis_provider into the constructor for the config_provider. For now autouse is needed.
-@pytest.fixture(autouse=True)
-def mock_get_supported_redis_versions(request, monkeypatch):
-    if "skip_redis_fixture" in request.keywords:
-        return
-
-    def mock_return_value(self):
+    def mock_return_value(self, strategy):
         return ["6.2", "7.0", "7.1"]
 
-    monkeypatch.setattr(RedisProvider, "get_supported_redis_versions", mock_return_value)
+    monkeypatch.setattr(Cache, "get_data", mock_return_value)

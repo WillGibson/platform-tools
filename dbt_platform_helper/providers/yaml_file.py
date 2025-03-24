@@ -1,5 +1,3 @@
-from abc import ABC
-from abc import abstractmethod
 from pathlib import Path
 
 import yaml
@@ -21,20 +19,16 @@ class FileNotFoundException(FileProviderException):
 
 
 class InvalidYamlException(YamlFileProviderException):
-    pass
+    def __init__(self, path: str):
+        super().__init__(f"""{path} is not valid YAML.""")
 
 
 class DuplicateKeysException(YamlFileProviderException):
-    pass
+    def __init__(self, duplicate_keys: str):
+        super().__init__(f"""Duplicate keys found in your config file: {duplicate_keys}.""")
 
 
-class FileProvider(ABC):
-    @abstractmethod
-    def load(path: str) -> dict:
-        raise NotImplementedError("Implement this in the subclass")
-
-
-class YamlFileProvider(FileProvider):
+class YamlFileProvider:
     def load(path: str) -> dict:
         """
         Raises:
@@ -47,11 +41,10 @@ class YamlFileProvider(FileProvider):
         try:
             yaml_content = yaml.safe_load(Path(path).read_text())
         except ParserError:
-            raise InvalidYamlException(f"{path} is not valid YAML.")
+            raise InvalidYamlException(path)
 
         if not yaml_content:
             return {}
-
         YamlFileProvider.lint_yaml_for_duplicate_keys(path)
 
         return yaml_content

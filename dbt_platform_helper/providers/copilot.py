@@ -4,7 +4,7 @@ import time
 from botocore.exceptions import ClientError
 
 from dbt_platform_helper.constants import CONDUIT_DOCKER_IMAGE_LOCATION
-from dbt_platform_helper.providers.aws import CreateTaskTimeoutException
+from dbt_platform_helper.providers.aws.exceptions import CreateTaskTimeoutException
 from dbt_platform_helper.providers.secrets import Secrets
 from dbt_platform_helper.utils.application import Application
 from dbt_platform_helper.utils.messages import abort_with_error
@@ -64,6 +64,7 @@ def create_addon_client_task(
         f"{execution_role}"
         f"--image {CONDUIT_DOCKER_IMAGE_LOCATION}:{addon_type} "
         f"--secrets CONNECTION_SECRET={_get_secrets_provider(application, env).get_connection_secret_arn(secret_name)} "
+        "--cpu 2048 --memory 4096 "
         "--platform-os linux "
         "--platform-arch arm64",
         shell=True,
@@ -98,6 +99,7 @@ def create_postgres_admin_task(
         f"--task-group-name {task_name} "
         f"--image {CONDUIT_DOCKER_IMAGE_LOCATION}:{addon_type} "
         f"--env-vars CONNECTION_SECRET='{connection_string}' "
+        "--cpu 2048 --memory 4096 "
         "--platform-os linux "
         "--platform-arch arm64",
         shell=True,

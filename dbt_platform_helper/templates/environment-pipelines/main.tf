@@ -15,7 +15,7 @@ provider "aws" {
 }
 
 terraform {
-  required_version = "~> 1.8"
+  required_version = "{{ terraform_version }}"
   backend "s3" {
     bucket         = "terraform-platform-state-{{ aws_account }}"
     key            = "tfstate/application/{{ application }}-pipelines.tfstate"
@@ -27,7 +27,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5"
+      version = "{{ aws_provider_version }}"
     }
   }
 }
@@ -40,7 +40,7 @@ module "environment-pipelines" {
 
   application         = "{{ application }}"
   pipeline_name       = each.key
-  repository          = "uktrade/{{ application }}-deploy"
+  repository          = "{{ deploy_repository }}"
 
   environments        = each.value.environments
   all_pipelines       = local.all_pipelines

@@ -1,40 +1,40 @@
 # Commands Reference
 
 - [platform-helper](#platform-helper)
-- [platform-helper application](#platform-helper-application)
-- [platform-helper application container-stats](#platform-helper-application-container-stats)
-- [platform-helper application task-stats](#platform-helper-application-task-stats)
-- [platform-helper codebase](#platform-helper-codebase)
-- [platform-helper codebase prepare](#platform-helper-codebase-prepare)
-- [platform-helper codebase list](#platform-helper-codebase-list)
-- [platform-helper codebase build](#platform-helper-codebase-build)
-- [platform-helper codebase deploy](#platform-helper-codebase-deploy)
-- [platform-helper conduit](#platform-helper-conduit)
-- [platform-helper config](#platform-helper-config)
-- [platform-helper config validate](#platform-helper-config-validate)
-- [platform-helper config aws](#platform-helper-config-aws)
-- [platform-helper copilot](#platform-helper-copilot)
-- [platform-helper copilot make-addons](#platform-helper-copilot-make-addons)
-- [platform-helper environment](#platform-helper-environment)
-- [platform-helper environment offline](#platform-helper-environment-offline)
-- [platform-helper environment online](#platform-helper-environment-online)
-- [platform-helper environment generate](#platform-helper-environment-generate)
-- [platform-helper environment generate-terraform](#platform-helper-environment-generate-terraform)
-- [platform-helper generate](#platform-helper-generate)
-- [platform-helper pipeline](#platform-helper-pipeline)
-- [platform-helper pipeline generate](#platform-helper-pipeline-generate)
-- [platform-helper secrets](#platform-helper-secrets)
-- [platform-helper secrets copy](#platform-helper-secrets-copy)
-- [platform-helper secrets list](#platform-helper-secrets-list)
-- [platform-helper notify](#platform-helper-notify)
-- [platform-helper notify environment-progress](#platform-helper-notify-environment-progress)
-- [platform-helper notify add-comment](#platform-helper-notify-add-comment)
-- [platform-helper database](#platform-helper-database)
-- [platform-helper database dump](#platform-helper-database-dump)
-- [platform-helper database load](#platform-helper-database-load)
-- [platform-helper database copy](#platform-helper-database-copy)
-- [platform-helper version](#platform-helper-version)
-- [platform-helper version get-platform-helper-for-project](#platform-helper-version-get-platform-helper-for-project)
+    - [platform-helper application](#platform-helper-application)
+        - [platform-helper application container-stats](#platform-helper-application-container-stats)
+        - [platform-helper application task-stats](#platform-helper-application-task-stats)
+    - [platform-helper codebase](#platform-helper-codebase)
+        - [platform-helper codebase prepare](#platform-helper-codebase-prepare)
+        - [platform-helper codebase list](#platform-helper-codebase-list)
+        - [platform-helper codebase build](#platform-helper-codebase-build)
+        - [platform-helper codebase deploy](#platform-helper-codebase-deploy)
+    - [platform-helper conduit](#platform-helper-conduit)
+    - [platform-helper config](#platform-helper-config)
+        - [platform-helper config validate](#platform-helper-config-validate)
+        - [platform-helper config aws](#platform-helper-config-aws)
+    - [platform-helper copilot](#platform-helper-copilot)
+        - [platform-helper copilot make-addons](#platform-helper-copilot-make-addons)
+    - [platform-helper environment](#platform-helper-environment)
+        - [platform-helper environment offline](#platform-helper-environment-offline)
+        - [platform-helper environment online](#platform-helper-environment-online)
+        - [platform-helper environment generate](#platform-helper-environment-generate)
+        - [platform-helper environment generate-terraform](#platform-helper-environment-generate-terraform)
+    - [platform-helper generate](#platform-helper-generate)
+    - [platform-helper pipeline](#platform-helper-pipeline)
+        - [platform-helper pipeline generate](#platform-helper-pipeline-generate)
+    - [platform-helper secrets](#platform-helper-secrets)
+        - [platform-helper secrets copy](#platform-helper-secrets-copy)
+        - [platform-helper secrets list](#platform-helper-secrets-list)
+    - [platform-helper notify](#platform-helper-notify)
+        - [platform-helper notify environment-progress](#platform-helper-notify-environment-progress)
+        - [platform-helper notify add-comment](#platform-helper-notify-add-comment)
+    - [platform-helper database](#platform-helper-database)
+        - [platform-helper database dump](#platform-helper-database-dump)
+        - [platform-helper database load](#platform-helper-database-load)
+        - [platform-helper database copy](#platform-helper-database-copy)
+    - [platform-helper version](#platform-helper-version)
+        - [platform-helper version get-platform-helper-for-project](#platform-helper-version-get-platform-helper-for-project)
 
 # platform-helper
 
@@ -222,7 +222,7 @@ platform-helper codebase build --app <application> --codebase <codebase>
 - `--app <text>`
   - AWS application name
 - `--codebase <text>`
-  - The codebase name as specified in the platform-config.yml file
+  - The codebase name as specified in the platform-config.yml file. This must be run from your codebase repository directory.
 - `--commit <text>`
   - GitHub commit hash
 - `--help <boolean>` _Defaults to False._
@@ -246,7 +246,7 @@ platform-helper codebase deploy --app <application> --env <environment> --codeba
 - `--env <text>`
   - AWS Copilot environment
 - `--codebase <text>`
-  - The codebase name as specified in the platform-config.yml file
+  - The codebase name as specified in the platform-config.yml file. This can be run from any directory.
 - `--commit <text>`
   - GitHub commit hash
 - `--help <boolean>` _Defaults to False._
@@ -457,19 +457,20 @@ platform-helper environment online --app <application> --env <environment>
 
 [↩ Parent](#platform-helper-environment)
 
+    Gathers various IDs and ARNs from AWS and generates the AWS Copilot
+    environment manifest at copilot/environments/<environment>/manifest.yml.
+
 ## Usage
 
 ```
-platform-helper environment generate --name <name> [--vpc-name <vpc_name>] 
+platform-helper environment generate --name <name> 
 ```
 
 ## Options
 
-- `--vpc-name <text>`
-
 - `--name
 -n <text>`
-
+  - The name of the environment to generate a copilot manifest for.
 - `--help <boolean>` _Defaults to False._
   - Show this message and exit.
 
@@ -491,7 +492,7 @@ platform-helper environment generate-terraform --name <name> [--terraform-platfo
 -n <text>`
   - The name of the environment to generate a manifest for.
 - `--terraform-platform-modules-version <text>`
-  - Override the default version of terraform-platform-modules. (Default version is '5').
+  - Override the default version of terraform-platform-modules. (Default version is '7').
 - `--help <boolean>` _Defaults to False._
   - Show this message and exit.
 
@@ -564,7 +565,7 @@ platform-helper pipeline generate [--terraform-platform-modules-version <terrafo
   - Override the default version of terraform-platform-modules with a specific version or branch. 
 Precedence of version used is version supplied via CLI, then the version found in 
 platform-config.yml/default_versions/terraform-platform-modules. 
-In absence of these inputs, defaults to version '5'.
+In absence of these inputs, defaults to version '7'.
 - `--deploy-branch <text>`
   - Specify the branch of <application>-deploy used to configure the source stage in the environment-pipeline resource. 
 This is generated from the terraform/environments-pipeline/<aws_account>/main.tf file. 
@@ -666,7 +667,7 @@ platform-helper notify (environment-progress|add-comment)
 
 [↩ Parent](#platform-helper-notify)
 
-    Send environment progress notifications
+    Send environment progress notifications. This creates (or updates if --slack-ref is provided) the top level message to the channel.
 
 ## Usage
 
@@ -694,7 +695,7 @@ platform-helper notify environment-progress <slack_channel_id> <slack_token>
 - `--commit-sha <text>`
 
 - `--slack-ref <text>`
-  - Slack message reference
+  - Slack message reference of the message to update
 - `--help <boolean>` _Defaults to False._
   - Show this message and exit.
 
@@ -702,7 +703,7 @@ platform-helper notify environment-progress <slack_channel_id> <slack_token>
 
 [↩ Parent](#platform-helper-notify)
 
-    Add comment to a notification
+    Add a comment to an existing Slack message
 
 ## Usage
 
@@ -855,8 +856,8 @@ platform-helper database copy --from <from_env> --to <to_env> --database <databa
 
 [↩ Parent](#platform-helper)
 
-    Contains subcommands for getting version information about the
-        current project.
+    Contains subcommands for getting version information about the current
+    project.
 
 ## Usage
 

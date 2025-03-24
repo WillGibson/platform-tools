@@ -12,12 +12,16 @@ import botocore.exceptions
 import click
 import yaml
 from boto3 import Session
+from botocore.exceptions import ClientError
 
 from dbt_platform_helper.constants import REFRESH_TOKEN_MESSAGE
 from dbt_platform_helper.platform_exception import PlatformException
-from dbt_platform_helper.providers.aws import CopilotCodebaseNotFoundException
-from dbt_platform_helper.providers.aws import ImageNotFoundException
-from dbt_platform_helper.providers.aws import LogGroupNotFoundException
+from dbt_platform_helper.providers.aws.exceptions import (
+    CopilotCodebaseNotFoundException,
+)
+from dbt_platform_helper.providers.aws.exceptions import ImageNotFoundException
+from dbt_platform_helper.providers.aws.exceptions import LogGroupNotFoundException
+from dbt_platform_helper.providers.aws.exceptions import RepositoryNotFoundException
 from dbt_platform_helper.providers.validation import ValidationException
 
 SSM_BASE_PATH = "/copilot/{app}/{env}/secrets/"
@@ -381,6 +385,11 @@ def start_build_extraction(codebuild_client, build_options):
     return response["build"]["arn"]
 
 
+def start_pipeline_and_return_execution_id(codepipeline_client, build_options):
+    response = codepipeline_client.start_pipeline_execution(**build_options)
+    return response["pipelineExecutionId"]
+
+
 # Todo: This should probably be in the AWS Copilot provider
 def check_codebase_exists(session: Session, application, codebase: str):
     try:
@@ -402,16 +411,16 @@ def check_codebase_exists(session: Session, application, codebase: str):
 
 def check_image_exists(session, application, codebase, commit):
     ecr_client = session.client("ecr")
+    repository = f"{application.name}/{codebase}"
     try:
         ecr_client.describe_images(
-            repositoryName=f"{application.name}/{codebase}",
+            repositoryName=repository,
             imageIds=[{"imageTag": f"commit-{commit}"}],
         )
-    except (
-        ecr_client.exceptions.RepositoryNotFoundException,
-        ecr_client.exceptions.ImageNotFoundException,
-    ):
+    except ecr_client.exceptions.ImageNotFoundException:
         raise ImageNotFoundException(commit)
+    except ecr_client.exceptions.RepositoryNotFoundException:
+        raise RepositoryNotFoundException(repository)
 
 
 def get_build_url_from_arn(build_arn: str) -> str:
@@ -421,6 +430,11 @@ def get_build_url_from_arn(build_arn: str) -> str:
         f"https://eu-west-2.console.aws.amazon.com/codesuite/codebuild/{account_id}/projects/"
         f"{project_name}/build/{project_name}%3A{build_id}"
     )
+
+
+def get_build_url_from_pipeline_execution_id(execution_id: str, pipeline_name: str) -> str:
+
+    return f"https://eu-west-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/{pipeline_name}/executions/{execution_id}"
 
 
 def list_latest_images(ecr_client, ecr_repository_name, codebase_repository, echo):
@@ -473,3 +487,23 @@ def wait_for_log_group_to_exist(log_client, log_group_name, attempts=30):
 
     if not log_group_exists:
         raise LogGroupNotFoundException(log_group_name)
+
+
+def get_image_build_project(codebuild_client, application, codebase):
+    project_name = f"{application}-{codebase}-codebase-image-build"
+    response = codebuild_client.batch_get_projects(names=[project_name])
+
+    if bool(response.get("projects")):
+        return project_name
+    else:
+        return f"{application}-{codebase}-codebase-pipeline-image-build"
+
+
+def get_manual_release_pipeline(codepipeline_client, application, codebase):
+    pipeline_name = f"{application}-{codebase}-manual-release"
+    try:
+        codepipeline_client.get_pipeline(name=pipeline_name)
+        return pipeline_name
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "PipelineNotFoundException":
+            return f"{pipeline_name}-pipeline"

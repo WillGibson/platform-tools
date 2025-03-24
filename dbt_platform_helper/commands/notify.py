@@ -2,26 +2,26 @@ import click
 from slack_sdk import WebClient
 from slack_sdk.models import blocks
 
+from dbt_platform_helper.domain.versioning import PlatformHelperVersioning
 from dbt_platform_helper.utils.arn_parser import ARN
 from dbt_platform_helper.utils.click import ClickDocOptGroup
-from dbt_platform_helper.utils.versioning import (
-    check_platform_helper_version_needs_update,
-)
 
 
 @click.group(cls=ClickDocOptGroup, help="Send Slack notifications")
 def notify():
-    check_platform_helper_version_needs_update()
+    PlatformHelperVersioning().check_if_needs_update()
 
 
-@notify.command(help="Send environment progress notifications")
+@notify.command(
+    help="Send environment progress notifications. This creates (or updates if --slack-ref is provided) the top level message to the channel."
+)
 @click.argument("slack-channel-id")
 @click.argument("slack-token")
 @click.argument("message")
 @click.option("--build-arn")
 @click.option("--repository")
 @click.option("--commit-sha")
-@click.option("--slack-ref", help="Slack message reference")
+@click.option("--slack-ref", help="Slack message reference of the message to update")
 def environment_progress(
     slack_channel_id: str,
     slack_token: str,
@@ -83,7 +83,7 @@ def _get_slack_client(token: str):
     return WebClient(token=token)
 
 
-@notify.command(help="Add comment to a notification")
+@notify.command(help="Add a comment to an existing Slack message")
 @click.argument("slack-channel-id")
 @click.argument("slack-token")
 @click.argument("slack-ref")

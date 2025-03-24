@@ -1,5 +1,109 @@
 # Changelog
 
+## [13.2.0](https://github.com/uktrade/platform-tools/compare/13.1.2...13.2.0) (2025-03-07)
+
+
+### Features
+
+* DBTP-1845 Improve Maintenance Page logging ([#790](https://github.com/uktrade/platform-tools/issues/790)) ([9fb3985](https://github.com/uktrade/platform-tools/commit/9fb39854ed31ebcc09dfe71e09ef2de3d02eb72f))
+
+
+### Bug Fixes
+
+* config validate command - wrong provider injected into PlatformHelperVersioning ([#801](https://github.com/uktrade/platform-tools/issues/801)) ([7a7c36d](https://github.com/uktrade/platform-tools/commit/7a7c36da8d6eab0111386553c64d6ba25bccc6c1))
+* DBTP-1804 - Update manual release pipeline name ([#781](https://github.com/uktrade/platform-tools/issues/781)) ([cb571fc](https://github.com/uktrade/platform-tools/commit/cb571fc9985d823801a83440b03fa3f458b85eac))
+* mock aws session in copilot tests ([#796](https://github.com/uktrade/platform-tools/issues/796)) ([9ee43b5](https://github.com/uktrade/platform-tools/commit/9ee43b51c9c1718f9e81d0ebe0ed2ce6364cc854))
+
+## [13.1.2](https://github.com/uktrade/platform-tools/compare/13.1.1...13.1.2) (2025-02-26)
+
+
+### Bug Fixes
+
+* Fix Vulnerable OpenSSL included in cryptography wheels ([#786](https://github.com/uktrade/platform-tools/issues/786)) ([b6f1cb6](https://github.com/uktrade/platform-tools/commit/b6f1cb615fe8f7d59f53cb4330fd16550f710489))
+* Fix load balancer tag description limit by chunking ([#784](https://github.com/uktrade/platform-tools/issues/784)) ([3ee9eae](https://github.com/uktrade/platform-tools/commit/3ee9eaece39e1483baf41e6b3d628ca143d76368))
+
+## [13.1.1](https://github.com/uktrade/platform-tools/compare/13.1.0...13.1.1) (2025-02-21)
+
+
+### Bug Fixes
+
+* DBTP-1700 Deprecate cross_enviroment_service_access application property ([#780](https://github.com/uktrade/platform-tools/issues/780)) ([8a54526](https://github.com/uktrade/platform-tools/commit/8a5452678f71a6ee306db70d2a1c0bf079eca7b6))
+
+## [13.1.0](https://github.com/uktrade/platform-tools/compare/13.0.2...13.1.0) (2025-02-20)
+
+
+### Features
+
+* add deploy_repository as an optional key to platform-config.yml. ([#762](https://github.com/uktrade/platform-tools/issues/762)) ([9f69b32](https://github.com/uktrade/platform-tools/commit/9f69b324faf1e3f4c18c1ebb582fab0518c9d771))
+* DBTP-1788 Add deploy_repository key to codebase pipeline ([#777](https://github.com/uktrade/platform-tools/issues/777)) ([cf4e52a](https://github.com/uktrade/platform-tools/commit/cf4e52a86ba78725d3bd1380fad86ba433b035e6))
+
+
+### Bug Fixes
+
+* DBTP-1789 - Default pipelines config to empty list ([#772](https://github.com/uktrade/platform-tools/issues/772)) ([f109139](https://github.com/uktrade/platform-tools/commit/f109139b12239b30ec53c83fa220dc3b6e547ca7))
+* DBTP-1792 Set FileProvider default in CopilotTemplating ([#769](https://github.com/uktrade/platform-tools/issues/769)) ([81401e6](https://github.com/uktrade/platform-tools/commit/81401e60326126a56c01aa0736789bc9a7ac0f00))
+* Use fakefs in test to avoid message changing to 'overwritten' in subsequent test runs ([#775](https://github.com/uktrade/platform-tools/issues/775)) ([433592e](https://github.com/uktrade/platform-tools/commit/433592e1655ac4bcfaf2adc2ae9e1eff80a574b7))
+
+## [13.0.2](https://github.com/uktrade/platform-tools/compare/13.0.1...13.0.2) (2025-02-10)
+
+
+### Bug Fixes
+
+* DBTP-1387 Fix maintenance page offline command when specifiying a specific service ([#746](https://github.com/uktrade/platform-tools/issues/746)) ([b22630b](https://github.com/uktrade/platform-tools/commit/b22630be5fb4cf2085c2da370e63dcd1ce6dcdc7))
+* DBTP-1602 Fix resource renaming bug ([#759](https://github.com/uktrade/platform-tools/issues/759)) ([c968433](https://github.com/uktrade/platform-tools/commit/c968433d2225ca5775263bfbfa2426d856c422f7))
+* DBTP-1784: Passing a full path as the first mkfile parameter causes a file not found error ([#768](https://github.com/uktrade/platform-tools/issues/768)) ([ef126c6](https://github.com/uktrade/platform-tools/commit/ef126c680a6d1812df672f39c61c508672f7eb53))
+* Delete old manifest before creating json one ([#764](https://github.com/uktrade/platform-tools/issues/764)) ([681d487](https://github.com/uktrade/platform-tools/commit/681d487508d91360d8295e6cb87e0aba27788244))
+
+## [13.0.1](https://github.com/uktrade/platform-tools/compare/13.0.0...13.0.1) (2025-01-31)
+
+
+### Bug Fixes
+
+* DBPT-1729 - Allows Vpc to be returned without security groups ([#747](https://github.com/uktrade/platform-tools/issues/747)) ([2685797](https://github.com/uktrade/platform-tools/commit/2685797d1e8b25ce2008483e0d33f6cd0627fa8d))
+
+## [13.0.0](https://github.com/uktrade/platform-tools/compare/12.6.0...13.0.0) (2025-01-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Update release version 13.0.0 ([#743](https://github.com/uktrade/platform-tools/issues/743))
+
+### Features
+
+* DBTP-1505 Generate terraform codebase pipeline configuration. ([#723](https://github.com/uktrade/platform-tools/issues/723)) ([96c6d7d](https://github.com/uktrade/platform-tools/commit/96c6d7d4c070fa8f9e13ffedc23a86aa7e75d28c))
+* Update release version 13.0.0 ([#743](https://github.com/uktrade/platform-tools/issues/743)) ([1eec27f](https://github.com/uktrade/platform-tools/commit/1eec27f0d14b05c722da6c696ddf98d97a4a2cde))
+
+
+### Bug Fixes
+
+* DBTP-1553  Listener rule cleanup on exception during maintenance page set up ([#737](https://github.com/uktrade/platform-tools/issues/737)) ([bb4a38f](https://github.com/uktrade/platform-tools/commit/bb4a38fe0be53a2943d1bd297d3bbeba1f8cea6c))
+
+## [12.6.0](https://github.com/uktrade/platform-tools/compare/12.5.1...12.6.0) (2025-01-28)
+
+
+### Features
+
+* DBTP-1635 Add additional S3 source bucket validation  ([#738](https://github.com/uktrade/platform-tools/issues/738)) ([f6f65d4](https://github.com/uktrade/platform-tools/commit/f6f65d4b2e53e80dcf073605f0b975cd01c0236c))
+
+
+### Bug Fixes
+
+* DBTP-1700 Increase indent on COMMAND.md list ([#739](https://github.com/uktrade/platform-tools/issues/739)) ([9987a20](https://github.com/uktrade/platform-tools/commit/9987a20811f7fc18ba1e07487220b29e059f592d))
+* use get_rules_tag_descriptions method to get descriptions ([#730](https://github.com/uktrade/platform-tools/issues/730)) ([e4dc724](https://github.com/uktrade/platform-tools/commit/e4dc7245a1db1048634bacfec791639569a237a2))
+
+
+### Documentation
+
+* DBTP-1332 Nest commands list for easier navigation ([#734](https://github.com/uktrade/platform-tools/issues/734)) ([d9bbe41](https://github.com/uktrade/platform-tools/commit/d9bbe4182e401a6d331d04ae929ab840dde82be0))
+
+## [12.5.1](https://github.com/uktrade/platform-tools/compare/12.5.0...12.5.1) (2025-01-17)
+
+
+### Bug Fixes
+
+* DBTP-1644: handle next token when getting services for application ([#721](https://github.com/uktrade/platform-tools/issues/721)) ([b87e532](https://github.com/uktrade/platform-tools/commit/b87e532a7d53ef60bf8939c515bbac0d52cb7438))
+* DBTP-1645 - conduit out of memory when querying large data sets ([#726](https://github.com/uktrade/platform-tools/issues/726)) ([d38441a](https://github.com/uktrade/platform-tools/commit/d38441ac9290883f2a0be45594b494b0d923e23f))
+
 ## [12.5.0](https://github.com/uktrade/platform-tools/compare/12.4.1...12.5.0) (2025-01-08)
 
 

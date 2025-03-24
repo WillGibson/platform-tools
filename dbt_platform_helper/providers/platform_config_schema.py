@@ -14,11 +14,9 @@ class PlatformConfigSchema:
     def schema() -> Schema:
         return Schema(
             {
-                # The following line is for the AWS Copilot version, will be removed under DBTP-1002
                 "application": str,
-                Optional("legacy_project", default=False): bool,
+                Optional("deploy_repository"): str,
                 Optional("default_versions"): PlatformConfigSchema.__default_versions_schema(),
-                Optional("accounts"): list[str],
                 Optional("environments"): PlatformConfigSchema.__environments_schema(),
                 Optional("codebase_pipelines"): PlatformConfigSchema.__codebase_pipelines_schema(),
                 Optional(
@@ -80,7 +78,7 @@ class PlatformConfigSchema:
                 "cache": str,
                 "request": str,
             },
-            Optional("additional"): list[
+            Optional("additional"): [
                 {
                     "path": str,
                     "cache": str,
@@ -94,12 +92,12 @@ class PlatformConfigSchema:
             Optional("environments"): {
                 PlatformConfigSchema.__valid_environment_name(): Or(
                     {
-                        Optional("additional_address_list"): list,
-                        Optional("allowed_methods"): list,
-                        Optional("cached_methods"): list,
+                        Optional("additional_address_list"): [str],
+                        Optional("allowed_methods"): [str],
+                        Optional("cached_methods"): [str],
                         Optional("cdn_compress"): bool,
                         Optional("cdn_domains_list"): dict,
-                        Optional("cdn_geo_locations"): list,
+                        Optional("cdn_geo_locations"): [str],
                         Optional("cdn_geo_restriction_type"): str,
                         Optional("cdn_logging_bucket"): str,
                         Optional("cdn_logging_bucket_prefix"): str,
@@ -109,10 +107,10 @@ class PlatformConfigSchema:
                         Optional("enable_logging"): bool,
                         Optional("env_root"): str,
                         Optional("forwarded_values_forward"): str,
-                        Optional("forwarded_values_headers"): list,
+                        Optional("forwarded_values_headers"): [str],
                         Optional("forwarded_values_query_string"): bool,
                         Optional("origin_protocol_policy"): str,
-                        Optional("origin_ssl_protocols"): list,
+                        Optional("origin_ssl_protocols"): [str],
                         Optional("slack_alert_channel_alb_secret_rotation"): str,
                         Optional("viewer_certificate_minimum_protocol_version"): str,
                         Optional("viewer_certificate_ssl_support_method"): str,
@@ -127,15 +125,16 @@ class PlatformConfigSchema:
         }
 
     @staticmethod
-    def __codebase_pipelines_schema() -> list[dict]:
-        return [
-            {
-                "name": str,
+    def __codebase_pipelines_schema() -> dict:
+        return {
+            str: {
                 "repository": str,
+                Optional("slack_channel"): str,
+                Optional("requires_image_build"): bool,
                 Optional("additional_ecr_repository"): str,
                 Optional("deploy_repository_branch"): str,
-                "services": list[str],
-                "pipelines": [
+                "services": [{str: [str]}],
+                Optional("pipelines"): [
                     Or(
                         {
                             "name": str,
@@ -160,7 +159,7 @@ class PlatformConfigSchema:
                     ),
                 ],
             },
-        ]
+        }
 
     @staticmethod
     def __default_versions_schema() -> dict:
@@ -436,21 +435,24 @@ class PlatformConfigSchema:
         return True
 
     @staticmethod
-    def __valid_s3_base_definition() -> dict:
+    def __s3_bucket_schema() -> dict:
         def _valid_s3_bucket_arn(key):
             return Regex(
                 r"^arn:aws:s3::.*",
                 error=f"{key} must contain a valid ARN for an S3 bucket",
             )
 
+        _single_import_config = {
+            Optional("source_kms_key_arn"): PlatformConfigSchema.__valid_kms_key_arn(
+                "source_kms_key_arn"
+            ),
+            "source_bucket_arn": _valid_s3_bucket_arn("source_bucket_arn"),
+            "worker_role_arn": PlatformConfigSchema.__valid_iam_role_arn("worker_role_arn"),
+        }
+
         _valid_s3_data_migration = {
-            "import": {
-                Optional("source_kms_key_arn"): PlatformConfigSchema.__valid_kms_key_arn(
-                    "source_kms_key_arn"
-                ),
-                "source_bucket_arn": _valid_s3_bucket_arn("source_bucket_arn"),
-                "worker_role_arn": PlatformConfigSchema.__valid_iam_role_arn("worker_role_arn"),
-            },
+            Optional("import"): _single_import_config,
+            Optional("import_sources"): [_single_import_config],
         }
 
         _valid_s3_bucket_retention_policy = Or(
@@ -483,6 +485,10 @@ class PlatformConfigSchema:
 
         return dict(
             {
+                "type": "s3",
+                Optional("objects"): [
+                    {"key": str, Optional("body"): str, Optional("content_type"): str}
+                ],
                 Optional("readonly"): bool,
                 Optional("serve_static_content"): bool,
                 Optional("serve_static_param_name"): str,
@@ -500,7 +506,9 @@ class PlatformConfigSchema:
                         },
                         Optional("cross_environment_service_access"): {
                             PlatformConfigSchema.__valid_schema_key(): {
-                                "application": str,
+                                # Deprecated: We didn't implement cross application access, no service teams are asking for it.
+                                # application should be removed once we can confirm that no-one is using it.
+                                Optional("application"): str,
                                 "environment": PlatformConfigSchema.__valid_environment_name(),
                                 "account": str,
                                 "service": str,
@@ -517,17 +525,18 @@ class PlatformConfigSchema:
         )
 
     @staticmethod
-    def __s3_bucket_schema() -> dict:
-        return PlatformConfigSchema.__valid_s3_base_definition() | {
-            "type": "s3",
-            Optional("objects"): [
-                {"key": str, Optional("body"): str, Optional("content_type"): str}
-            ],
-        }
-
-    @staticmethod
     def __s3_bucket_policy_schema() -> dict:
-        return PlatformConfigSchema.__valid_s3_base_definition() | {"type": "s3-policy"}
+        return dict(
+            {
+                "type": "s3-policy",
+                Optional("services"): Or("__all__", [str]),
+                Optional("environments"): {
+                    PlatformConfigSchema.__valid_environment_name(): {
+                        "bucket_name": PlatformConfigSchema.valid_s3_bucket_name,
+                    },
+                },
+            }
+        )
 
     @staticmethod
     def string_matching_regex(regex_pattern: str) -> Callable:

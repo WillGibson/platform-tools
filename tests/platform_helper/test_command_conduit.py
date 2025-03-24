@@ -1,4 +1,3 @@
-from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
@@ -19,12 +18,9 @@ from tests.platform_helper.conftest import is_mutmut_test_run
     ],
 )
 @patch("dbt_platform_helper.commands.conduit.Conduit")
-@patch(
-    "dbt_platform_helper.utils.versioning.running_as_installed_package",
-    new=Mock(return_value=True),
-)
+@patch("dbt_platform_helper.commands.conduit.PlatformHelperVersioning.check_if_needs_update")
 @patch("dbt_platform_helper.commands.conduit.load_application")
-def test_start_conduit(mock_application, mock_conduit_object, addon_name, validate_version):
+def test_start_conduit(mock_application, validate_version, mock_conduit_object, addon_name):
     """Test that given an app, env and addon name strings, the conduit command
     calls start_conduit with app, env, addon type and addon name."""
 
@@ -48,17 +44,14 @@ def test_start_conduit(mock_application, mock_conduit_object, addon_name, valida
 
 
 @patch("dbt_platform_helper.commands.conduit.Conduit")
-@patch(
-    "dbt_platform_helper.utils.versioning.running_as_installed_package",
-    new=Mock(return_value=True),
-)
 @patch("dbt_platform_helper.commands.conduit.load_application")
+@patch("dbt_platform_helper.commands.conduit.PlatformHelperVersioning.check_if_needs_update")
 @patch("click.secho")
 def test_start_conduit_with_exception_raised_exit_1(
     mock_click,
+    validate_version,
     mock_application,
     mock_conduit_object,
-    validate_version,
 ):
 
     mock_conduit_instance = mock_conduit_object.return_value
@@ -75,7 +68,7 @@ def test_start_conduit_with_exception_raised_exit_1(
         ],
     )
 
-    mock_click.assert_called_with("""No secret called "test-secret".""", fg="red")
+    mock_click.assert_called_with("""Error: No secret called "test-secret".""", err=True, fg="red")
 
     assert result.exit_code == 1
 
